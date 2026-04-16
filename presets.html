@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kodak 400T — Tom Jenkinson</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<style>
+/* ── RESET ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; }
+
+/* ── BASE ── */
+body {
+  font-family: 'Archivo', sans-serif;
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── GRAIN ── */
+#grain-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 800;
+  opacity: 0.08;
+  mix-blend-mode: screen;
+}
+
+/* ── SHUTTER FLASH ── */
+#shutter {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 9000;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* ── FLIP CLONE (injected by JS) ── */
+.flip-clone {
+  position: fixed;
+  pointer-events: none;
+  z-index: 8000;
+  overflow: hidden;
+  background: #000;
+  will-change: transform;
+}
+.flip-clone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: contrast(1.08) saturate(0.72) sepia(0.18) brightness(0.92);
+}
+
+/* ── NAV ── */
+.nav-back {
+  position: fixed;
+  top: 22px;
+  left: 24px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
+  z-index: 100;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: #fff; }
+
+.nav-links {
+  position: fixed;
+  top: 22px;
+  right: 24px;
+  display: flex;
+  gap: 28px;
+  z-index: 100;
+}
+.nav-links a {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: #fff; }
+
+/* ── PAGE CONTENT FADE ── */
+#page-body {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#page-body.visible { opacity: 1; }
+
+/* ── SLIDER ── */
+.slider {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  max-height: 76vh;
+  overflow: hidden;
+  cursor: col-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  background: #0a0a0a;
+  flex-shrink: 0;
+}
+
+.slider-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  draggable: false;
+}
+
+/* After: z-index 1, fully visible — the baseline */
+.img-after {
+  z-index: 1;
+  filter: contrast(1.08) saturate(0.72) sepia(0.18) brightness(0.92);
+}
+
+/* Before: z-index 2, clipped from right — sits on top, reveals before */
+.img-before {
+  z-index: 2;
+  clip-path: inset(0 60% 0 0); /* default: before shows 40%, after shows 60% */
+}
+
+/* Hairline divider */
+.slider-bar {
+  position: absolute;
+  top: 0;
+  left: 40%;
+  width: 1px;
+  height: 100%;
+  background: rgba(255,255,255,0.9);
+  z-index: 3;
+  pointer-events: none;
+  transform: translateX(-0.5px);
+}
+
+.slider-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border: 1px solid #fff;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.handle-arrow {
+  width: 0;
+  height: 0;
+  flex-shrink: 0;
+}
+.handle-arrow.left {
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 6px solid #fff;
+}
+.handle-arrow.right {
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid #fff;
+}
+
+.slider-label {
+  position: absolute;
+  bottom: 16px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  z-index: 4;
+  pointer-events: none;
+}
+.label-before { left: 16px; }
+.label-after  { right: 16px; }
+
+/* ── PAGE CONTENT ── */
+.page-content {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 52px 24px 120px;
+}
+
+/* ── IDENTITY ── */
+.identity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.preset-name {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(56px, 10vw, 112px);
+  font-weight: 800;
+  font-variation-settings: 'opsz' 100, 'SOFT' 0, 'WONK' 0;
+  letter-spacing: -0.04em;
+  line-height: 0.88;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.preset-tags {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding-top: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 5px 10px;
+}
+
+/* ── DOWNLOAD REGION ── */
+.download-region {
+  margin-bottom: 0;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  padding-top: 28px;
+  margin-bottom: 0;
+}
+
+/* State machine via data-state attribute */
+.dl-state { display: none; }
+[data-state="cta"]    .dl-cta    { display: block; }
+[data-state="choice"] .dl-choice { display: grid; }
+[data-state="guide"]  .dl-guide  { display: block; }
+
+/* CTA */
+.dl-cta-btn {
+  font-family: 'Archivo', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #000;
+  background: #fff;
+  border: none;
+  padding: 15px 32px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.dl-cta-btn:hover { opacity: 0.85; }
+
+/* Choice */
+.dl-choice {
+  grid-template-columns: 1fr 1fr;
+  gap: 1px; /* hairline gap filled by background */
+  background: rgba(255,255,255,0.2);
+}
+
+.dl-opt {
+  background: #000;
+  padding: 24px 28px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.dl-opt:hover { background: rgba(255,255,255,0.04); }
+
+.opt-ext {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 700;
+  font-variation-settings: 'opsz' 30;
+  letter-spacing: -0.03em;
+  color: #fff;
+  line-height: 1;
+}
+
+.opt-name {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+}
+
+.opt-info {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+}
+
+/* Guide */
+.dl-guide { padding: 24px 0 4px; }
+
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.guide-step {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.guide-n {
+  font-family: 'Fraunces', serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variation-settings: 'opsz' 14;
+  color: rgba(255,255,255,0.25);
+  letter-spacing: 0.04em;
+  padding-top: 1px;
+}
+
+.guide-text {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.55);
+  text-transform: none;
+}
+
+.guide-text strong {
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+/* ── HAIRLINE RULE ── */
+.rule {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  margin: 48px 0;
+}
+
+/* ── PULL QUOTE ── */
+.pull-quote {
+  padding: 0;
+}
+
+.pull-quote p {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 300;
+  font-variation-settings: 'opsz' 30, 'SOFT' 100;
+  letter-spacing: -0.01em;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.85);
+  text-transform: none;
+  max-width: 600px;
+}
+
+/* ── CONTACT SHEET ── */
+.sheet-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+  margin-bottom: 16px;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(255,255,255,0.15); /* hairline gap color */
+}
+
+.contact-thumb {
+  aspect-ratio: 1;
+  overflow: hidden;
+  cursor: pointer;
+  background: #000;
+  position: relative;
+}
+
+.contact-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.08) saturate(0.72) sepia(0.18) brightness(0.92);
+  transition: opacity 0.25s, transform 0.4s cubic-bezier(0.25, 0, 0.1, 1);
+}
+
+.contact-thumb:hover img {
+  opacity: 0.7;
+  transform: scale(1.03);
+}
+
+/* ── LIGHTBOX ── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.lightbox.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.lb-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  display: block;
+  filter: contrast(1.08) saturate(0.72) sepia(0.18) brightness(0.92);
+}
+
+.lb-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 8px;
+}
+.lb-close:hover { color: #fff; }
+
+.lb-prev,
+.lb-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Archivo', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 16px;
+}
+.lb-prev:hover, .lb-next:hover { color: #fff; }
+.lb-prev { left: 16px; }
+.lb-next { right: 16px; }
+
+.lb-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.25);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .slider { max-height: none; aspect-ratio: 4 / 3; }
+  .dl-choice { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: repeat(3, 1fr); }
+  .identity { flex-direction: column; }
+}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Grain (p5.js renders into this) -->
+<div id="grain-canvas"></div>
+
+<!-- Shutter flash -->
+<div id="shutter"></div>
+
+<!-- Nav -->
+<a href="tom-jenkinson.html" class="nav-back">&#8592; Back</a>
+<nav class="nav-links">
+  <a href="work.html">Work</a>
+  <a href="info.html">Info</a>
+  <a href="creative.html">Creative</a>
+  <a href="about.html">About</a>
+</nav>
+
+<!-- ── SLIDER HERO ── -->
+<div class="slider" id="slider" aria-label="Before and after comparison. Drag to compare.">
+  <img class="slider-img img-after"
+       src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=90&auto=format"
+       alt="After — preset applied" draggable="false" id="sliderAfterImg">
+  <img class="slider-img img-before" id="imgBefore"
+       src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&q=90&auto=format"
+       alt="Before — unedited" draggable="false">
+  <div class="slider-bar" id="sliderBar">
+    <div class="slider-handle">
+      <span class="handle-arrow left"></span>
+      <span class="handle-arrow right"></span>
+    </div>
+  </div>
+  <span class="slider-label label-before">Before</span>
+  <span class="slider-label label-after">After</span>
+</div>
+
+<!-- ── PAGE BODY ── -->
+<div id="page-body">
+<div class="page-content">
+
+  <!-- Identity -->
+  <div class="identity">
+    <h1 class="preset-name">Kodak<br>400T</h1>
+    <div class="preset-tags">
+      <span class="tag">Lightroom Preset</span>
+      <span class="tag">Free</span>
+    </div>
+  </div>
+
+  <!-- Download region: 3 inline states -->
+  <div class="download-region" id="dlRegion" data-state="cta">
+
+    <div class="dl-state dl-cta">
+      <button class="dl-cta-btn" id="dlBtn">&#8595;&nbsp; Download</button>
+    </div>
+
+    <div class="dl-state dl-choice">
+      <a href="presets/preset-desktop.xmp" download="Kodak400T.xmp" class="dl-opt" id="dlXmp">
+        <span class="opt-ext">.XMP</span>
+        <span class="opt-name">Desktop</span>
+        <span class="opt-info">Lightroom Classic &amp; CC</span>
+      </a>
+      <a href="presets/preset-mobile.dng" download="Kodak400T.dng" class="dl-opt" id="dlDng">
+        <span class="opt-ext">.DNG</span>
+        <span class="opt-name">Mobile</span>
+        <span class="opt-info">Lightroom iOS &amp; Android</span>
+      </a>
+    </div>
+
+    <div class="dl-state dl-guide">
+      <div class="guide-steps">
+        <div class="guide-step">
+          <span class="guide-n">01</span>
+          <p class="guide-text">
+            <strong>Desktop</strong> — Open Lightroom Classic &rarr; Develop module &rarr; Presets panel &rarr; + icon &rarr; Import Profiles &amp; Presets &rarr; select the .xmp file.
+          </p>
+        </div>
+        <div class="guide-step">
+          <span class="guide-n">02</span>
+          <p class="guide-text">
+            <strong>Mobile</strong> — Open the .dng file in Lightroom mobile &rarr; tap the three-dot menu &rarr; Copy Settings &rarr; open your photo &rarr; Paste Settings.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <hr class="rule">
+
+  <!-- Pull quote -->
+  <blockquote class="pull-quote">
+    <p>Shot on Kodak 400T stock in Berlin, this preset started as a way to bring that same pushed-tungsten look to digital. Cooler shadows, lifted blacks, a faint cyan cast in the highlights — it pulls colour back without flattening it.</p>
+  </blockquote>
+
+  <hr class="rule">
+
+  <!-- Contact sheet -->
+  <p class="sheet-label">Shot on this preset</p>
+  <div class="contact-grid" id="contactGrid">
+    <div class="contact-thumb" data-index="0">
+      <img src="https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=600&q=80&auto=format" alt="Sample 1" loading="lazy">
+    </div>
+    <div class="contact-thumb" data-index="1">
+      <img src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&q=80&auto=format" alt="Sample 2" loading="lazy">
+    </div>
+    <div class="contact-thumb" data-index="2">
+      <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&q=80&auto=format" alt="Sample 3" loading="lazy">
+    </div>
+    <div class="contact-thumb" data-index="3">
+      <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80&auto=format" alt="Sample 4" loading="lazy">
+    </div>
+    <div class="contact-thumb" data-index="4">
+      <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600&q=80&auto=format" alt="Sample 5" loading="lazy">
+    </div>
+    <div class="contact-thumb" data-index="5">
+      <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80&auto=format" alt="Sample 6" loading="lazy">
+    </div>
+    <div class="contact-thumb" data-index="6">
+      <img src="https://images.unsplash.com/photo-1433360405326-e50f909805b3?w=600&q=80&auto=format" alt="Sample 7" loading="lazy">
+    </div>
+    <div class="contact-thumb" data-index="7">
+      <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&q=80&auto=format" alt="Sample 8" loading="lazy">
+    </div>
+  </div>
+
+</div><!-- /.page-content -->
+</div><!-- /#page-body -->
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <button class="lb-close" id="lbClose">&#10005; Close</button>
+  <button class="lb-prev" id="lbPrev">&#8592; Prev</button>
+  <img class="lb-img" id="lbImg" src="" alt="">
+  <button class="lb-next" id="lbNext">Next &#8594;</button>
+  <span class="lb-counter" id="lbCounter"></span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── CONTACT SHEET IMAGES (for lightbox navigation) ──
+  var IMAGES = [
+    'https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=1400&q=90&auto=format',
+    'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1400&q=90&auto=format',
+    'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1400&q=90&auto=format',
+    'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1400&q=90&auto=format',
+    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1400&q=90&auto=format',
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1400&q=90&auto=format',
+    'https://images.unsplash.com/photo-1433360405326-e50f909805b3?w=1400&q=90&auto=format',
+    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1400&q=90&auto=format'
+  ];
+
+  // ── BEFORE / AFTER SLIDER ──
+  var sliderEl  = document.getElementById('slider');
+  var beforeImg = document.getElementById('imgBefore');
+  var bar       = document.getElementById('sliderBar');
+  var dragging  = false;
+
+  function setSliderPos(clientX) {
+    var r   = sliderEl.getBoundingClientRect();
+    var pct = Math.max(0.02, Math.min(0.98, (clientX - r.left) / r.width));
+    // before is on top, clipped from right — pct = how much of before shows
+    beforeImg.style.clipPath = 'inset(0 ' + ((1 - pct) * 100) + '% 0 0)';
+    bar.style.left = (pct * 100) + '%';
+  }
+
+  // CSS sets the default position (40% bar, inset 60% clip) — no JS init needed
+
+  sliderEl.addEventListener('mousedown',  function (e) { dragging = true; setSliderPos(e.clientX); });
+  window.addEventListener('mousemove',    function (e) { if (dragging) setSliderPos(e.clientX); });
+  window.addEventListener('mouseup',      function ()  { dragging = false; });
+  sliderEl.addEventListener('touchstart', function (e) { dragging = true; setSliderPos(e.touches[0].clientX); }, { passive: true });
+  window.addEventListener('touchmove',    function (e) { if (dragging) setSliderPos(e.touches[0].clientX); }, { passive: true });
+  window.addEventListener('touchend',     function ()  { dragging = false; });
+
+  // ── DOWNLOAD STATE MACHINE ──
+  var dlRegion = document.getElementById('dlRegion');
+  var dlBtn    = document.getElementById('dlBtn');
+  var dlXmp    = document.getElementById('dlXmp');
+  var dlDng    = document.getElementById('dlDng');
+
+  function setDlState(state) {
+    dlRegion.setAttribute('data-state', state);
+  }
+
+  dlBtn.addEventListener('click', function () { setDlState('choice'); });
+
+  function handleDownload() {
+    setTimeout(function () { setDlState('guide'); }, 400);
+  }
+  dlXmp.addEventListener('click', handleDownload);
+  dlDng.addEventListener('click', handleDownload);
+
+  // ── LIGHTBOX ──
+  var lightbox  = document.getElementById('lightbox');
+  var lbImg     = document.getElementById('lbImg');
+  var lbClose   = document.getElementById('lbClose');
+  var lbPrev    = document.getElementById('lbPrev');
+  var lbNext    = document.getElementById('lbNext');
+  var lbCounter = document.getElementById('lbCounter');
+  var lbIndex   = 0;
+
+  function openLightbox(idx) {
+    lbIndex = idx;
+    lbImg.src = IMAGES[lbIndex];
+    lbCounter.textContent = (lbIndex + 1) + ' / ' + IMAGES.length;
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function stepLightbox(dir) {
+    lbIndex = (lbIndex + dir + IMAGES.length) % IMAGES.length;
+    lbImg.src = IMAGES[lbIndex];
+    lbCounter.textContent = (lbIndex + 1) + ' / ' + IMAGES.length;
+  }
+
+  document.querySelectorAll('.contact-thumb').forEach(function (el) {
+    el.addEventListener('click', function () {
+      openLightbox(parseInt(el.getAttribute('data-index'), 10));
+    });
+  });
+
+  lbClose.addEventListener('click', closeLightbox);
+  lbPrev.addEventListener('click',  function () { stepLightbox(-1); });
+  lbNext.addEventListener('click',  function () { stepLightbox(1); });
+  lightbox.addEventListener('click', function (e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape')     closeLightbox();
+    if (e.key === 'ArrowLeft')  stepLightbox(-1);
+    if (e.key === 'ArrowRight') stepLightbox(1);
+  });
+
+  // ── FLIP ENTRY TRANSITION ──
+  var shutter  = document.getElementById('shutter');
+  var pageBody = document.getElementById('page-body');
+
+  function fireShutter(duration) {
+    shutter.style.transition = 'none';
+    shutter.style.opacity = '1';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        shutter.style.transition = 'opacity ' + duration + 'ms linear';
+        shutter.style.opacity = '0';
+      });
+    });
+  }
+
+  function runEntry() {
+    var storedRect = null;
+    try {
+      var raw = sessionStorage.getItem('preset-flip-rect');
+      if (raw) { storedRect = JSON.parse(raw); sessionStorage.removeItem('preset-flip-rect'); }
+    } catch (e) {}
+
+    if (reducedMotion || !storedRect) {
+      // No FLIP — just fast shutter and fade in
+      fireShutter(reducedMotion ? 50 : 200);
+      setTimeout(function () { pageBody.classList.add('visible'); }, reducedMotion ? 60 : 220);
+      return;
+    }
+
+    // FLIP: animate a clone from thumbnail rect → slider rect
+    var sliderRect = sliderEl.getBoundingClientRect();
+
+    var clone = document.createElement('div');
+    clone.className = 'flip-clone';
+    clone.style.top    = storedRect.top  + 'px';
+    clone.style.left   = storedRect.left + 'px';
+    clone.style.width  = storedRect.width  + 'px';
+    clone.style.height = storedRect.height + 'px';
+
+    var cloneImg = document.createElement('img');
+    cloneImg.src = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80&auto=format';
+    clone.appendChild(cloneImg);
+    document.body.appendChild(clone);
+
+    // Fade content in behind the clone
+    setTimeout(function () { pageBody.classList.add('visible'); }, 200);
+
+    // Animate clone to slider position
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        clone.style.transition = 'top 0.42s cubic-bezier(0.4,0,0.2,1), left 0.42s cubic-bezier(0.4,0,0.2,1), width 0.42s cubic-bezier(0.4,0,0.2,1), height 0.42s cubic-bezier(0.4,0,0.2,1)';
+        clone.style.top    = sliderRect.top  + 'px';
+        clone.style.left   = sliderRect.left + 'px';
+        clone.style.width  = sliderRect.width  + 'px';
+        clone.style.height = sliderRect.height + 'px';
+      });
+    });
+
+    // Shutter fires as clone lands
+    setTimeout(function () {
+      fireShutter(120);
+      setTimeout(function () {
+        clone.style.opacity = '0';
+        clone.style.transition += ', opacity 0.1s';
+        setTimeout(function () { document.body.removeChild(clone); }, 120);
+      }, 80);
+    }, 420);
+  }
+
+  runEntry();
+
+  // ── P5.JS GRAIN ──
+  new p5(function (p) {
+    var SCALE  = 4;
+    var gw, gh;
+    // Coarse noise grid for organic density drift
+    var NGRID  = 12;
+    var nGrid  = [];
+
+    function buildNoiseGrid() {
+      var t = p.frameCount * 0.04;
+      for (var i = 0; i < NGRID; i++) {
+        nGrid[i] = nGrid[i] || [];
+        for (var j = 0; j < NGRID; j++) {
+          nGrid[i][j] = p.noise(i * 0.35, j * 0.35, t);
+        }
+      }
+    }
+
+    p.setup = function () {
+      p.pixelDensity(1);
+      gw = Math.floor(p.windowWidth  / SCALE);
+      gh = Math.floor(p.windowHeight / SCALE);
+      var c = p.createCanvas(gw, gh);
+      c.parent('grain-canvas');
+      c.elt.style.width  = '100%';
+      c.elt.style.height = '100%';
+      p.frameRate(14);
+      p.noSmooth();
+      p.strokeWeight(1);
+    };
+
+    p.draw = function () {
+      p.clear();
+      buildNoiseGrid(); // 144 noise calls — cheap
+
+      var density = Math.floor(gw * gh * 0.13);
+      for (var i = 0; i < density; i++) {
+        var x  = p.random(gw);
+        var y  = p.random(gh);
+
+        // Sample coarse noise grid
+        var ni = Math.floor((x / gw) * NGRID);
+        var nj = Math.floor((y / gh) * NGRID);
+        var n  = nGrid[Math.min(ni, NGRID - 1)][Math.min(nj, NGRID - 1)];
+
+        var brightness = p.random(160, 255);
+        var alpha = n > 0.45
+          ? p.random(35, 110)   // denser zone
+          : p.random(0,  28);   // sparse zone
+
+        p.stroke(brightness, brightness, brightness, alpha);
+        p.point(x, y);
+      }
+    };
+
+    p.windowResized = function () {
+      gw = Math.floor(p.windowWidth  / SCALE);
+      gh = Math.floor(p.windowHeight / SCALE);
+      p.resizeCanvas(gw, gh);
+    };
+  });
+
+})();
+</script>
+
+</body>
+</html>

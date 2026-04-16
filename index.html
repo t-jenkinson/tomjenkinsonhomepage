@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theta Sleep — Start Your Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+<style>
+  :root {
+    --teal-dark: #1a3a3a;
+    --teal-mid: #2d5a5a;
+    --teal-light: #c8dede;
+    --cream: #f5f2ec;
+    --cream-dark: #ede9e1;
+    --text-dark: #1a2e2e;
+    --text-mid: #4a6060;
+    --text-light: #7a9090;
+    --white: #ffffff;
+    --gold: #c9a96e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--cream-dark);
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--teal-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo svg {
+    width: 32px;
+    height: 20px;
+  }
+
+  .nav-help {
+    font-size: 13px;
+    color: var(--text-mid);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    background: var(--cream-dark);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .progress-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .step-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .step.done .step-dot { background: var(--teal-dark); color: white; }
+  .step.active .step-dot { background: var(--teal-dark); color: white; }
+  .step.upcoming .step-dot { background: var(--teal-light); color: var(--teal-dark); }
+  .step.done .step-label { color: var(--text-mid); }
+  .step.active .step-label { color: var(--teal-dark); font-weight: 600; }
+  .step.upcoming .step-label { color: var(--text-light); }
+
+  .step-line {
+    flex: 1;
+    height: 1px;
+    background: var(--teal-light);
+    margin: 0 6px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  /* ── DOCTOR CARD ── */
+  .doctor-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(26,58,58,0.07);
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .doctor-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: white;
+  }
+
+  .doctor-info h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--teal-dark);
+    margin-bottom: 2px;
+  }
+
+  .doctor-info .title {
+    font-size: 12px;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .doctor-info p {
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+
+  .gmc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--cream);
+    border: 1px solid var(--cream-dark);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: var(--text-mid);
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  .gmc-check {
+    color: var(--teal-dark);
+    font-weight: 700;
+  }
+
+  /* ── PROCESS STEPS ── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 12px;
+    animation: fadeUp 0.4s 0.1s ease both;
+  }
+
+  .process-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 24px;
+    position: relative;
+    animation: fadeUp 0.4s 0.15s ease both;
+  }
+
+  .process-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .step-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 36px;
+  }
+
+  .step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--teal-dark);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-family: 'DM Serif Display', serif;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .step-connector {
+    width: 1px;
+    flex: 1;
+    min-height: 24px;
+    background: var(--teal-light);
+    margin: 4px 0;
+  }
+
+  .step-content {
+    padding-bottom: 24px;
+    flex: 1;
+  }
+
+  .process-step:last-child .step-content {
+    padding-bottom: 0;
+  }
+
+  .step-content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--teal-dark);
+    margin-bottom: 4px;
+    margin-top: 6px;
+  }
+
+  .step-content p {
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  /* ── VALUE COMPARISON ── */
+  .value-comparison {
+    background: var(--teal-dark);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s 0.2s ease both;
+  }
+
+  .value-comparison h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: var(--white);
+    margin-bottom: 16px;
+    opacity: 0.9;
+  }
+
+  .comparison-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .comparison-row:last-child { border-bottom: none; }
+
+  .comparison-label {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .comparison-nhs {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    text-decoration: line-through;
+  }
+
+  .comparison-theta {
+    font-size: 13px;
+    color: var(--teal-light);
+    font-weight: 600;
+  }
+
+  .comparison-theta.highlight {
+    color: #a8d8b0;
+  }
+
+  /* ── TESTIMONIAL CAROUSEL (Swiper) ── */
+  .testimonial-section {
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s 0.3s ease both;
+  }
+
+  .testimonial-swiper {
+    width: 100%;
+    padding-bottom: 44px !important; /* room for pagination */
+  }
+
+  .testimonial {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px 20px;
+    box-shadow: 0 2px 12px rgba(26,58,58,0.07);
+    border-left: 3px solid var(--teal-dark);
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .testimonial blockquote {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--teal-dark);
+    line-height: 1.65;
+    font-style: italic;
+    margin-bottom: 20px;
+    flex: 1;
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .author-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal-light), var(--teal-mid));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: white;
+    font-family: 'DM Serif Display', serif;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .author-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teal-dark);
+  }
+
+  .author-detail {
+    font-size: 11px;
+    color: var(--text-light);
+    line-height: 1.4;
+  }
+
+  /* Swiper navigation buttons — styled to match page */
+  .testimonial-swiper .swiper-button-prev,
+  .testimonial-swiper .swiper-button-next {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 1px solid var(--teal-light);
+    box-shadow: 0 1px 6px rgba(26,58,58,0.1);
+    top: auto;
+    bottom: 0;
+    margin-top: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .testimonial-swiper .swiper-button-prev { left: calc(50% - 60px); }
+  .testimonial-swiper .swiper-button-next { right: calc(50% - 60px); }
+
+  .testimonial-swiper .swiper-button-prev:hover,
+  .testimonial-swiper .swiper-button-next:hover {
+    background: var(--teal-light);
+    border-color: var(--teal-mid);
+  }
+
+  .testimonial-swiper .swiper-button-prev::after,
+  .testimonial-swiper .swiper-button-next::after {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teal-dark);
+  }
+
+  /* Swiper pagination dots */
+  .testimonial-swiper .swiper-pagination {
+    bottom: 8px;
+  }
+
+  .testimonial-swiper .swiper-pagination-bullet {
+    background: var(--teal-light);
+    opacity: 1;
+    width: 7px;
+    height: 7px;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .testimonial-swiper .swiper-pagination-bullet-active {
+    background: var(--teal-dark);
+    transform: scale(1.25);
+  }
+
+  .more-testimonials-link {
+    display: block;
+    text-align: center;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-mid);
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .more-testimonials-link:hover {
+    color: var(--teal-dark);
+  }
+
+  /* ── TESTIMONIALS MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,58,58,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal {
+    background: var(--cream);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 40px rgba(26,58,58,0.2);
+    animation: fadeUp 0.3s ease;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--cream-dark);
+    flex-shrink: 0;
+  }
+
+  .modal-header h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--teal-dark);
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--cream-dark);
+    background: var(--white);
+    color: var(--text-mid);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover {
+    background: var(--cream-dark);
+  }
+
+  .modal-body {
+    overflow-y: auto;
+    padding: 16px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-body .testimonial {
+    min-width: unset;
+    min-height: unset;
+    flex-shrink: unset;
+  }
+
+  .modal-body .testimonial blockquote {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .carousel-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--teal-light);
+    background: var(--white);
+    color: var(--teal-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    font-size: 14px;
+  }
+
+  .carousel-btn:hover {
+    background: var(--teal-light);
+    border-color: var(--teal-mid);
+  }
+
+  .carousel-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .carousel-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .carousel-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    padding: 0;
+  }
+
+  .carousel-dot.active {
+    background: var(--teal-dark);
+    transform: scale(1.2);
+  }
+
+  /* ── ACCREDITATION BAR ── */
+  .accreditation-bar {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 8px rgba(26,58,58,0.06);
+    animation: fadeUp 0.4s 0.25s ease both;
+  }
+
+  .accreditation-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .accreditation-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .accreditation-item svg {
+    flex-shrink: 0;
+  }
+
+  .accreditation-text {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dark);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .accreditation-text .nhs-blue {
+    color: #005eb8;
+    font-weight: 800;
+  }
+
+  .accreditation-text .light {
+    font-weight: 400;
+    color: var(--text-mid);
+  }
+
+  /* ── PRICE BLOCK ── */
+  .price-block {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(26,58,58,0.07);
+    animation: fadeUp 0.4s 0.35s ease both;
+  }
+
+  .price-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .price-label {
+    font-size: 13px;
+    color: var(--text-mid);
+    font-weight: 500;
+  }
+
+  .price-amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--teal-dark);
+    line-height: 1;
+  }
+
+  .price-sub {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+  }
+
+  .price-includes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--cream-dark);
+  }
+
+  .include-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-mid);
+  }
+
+  .include-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--teal-dark);
+    color: white;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  /* ── CTA ── */
+  .cta-block {
+    animation: fadeUp 0.4s 0.4s ease both;
+  }
+
+  .cta-button {
+    width: 100%;
+    background: var(--teal-dark);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 18px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.01em;
+  }
+
+  .cta-button:hover { background: var(--teal-mid); transform: translateY(-1px); }
+  .cta-button:active { transform: translateY(0); }
+
+  .cta-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 10px;
+  }
+
+  .cta-sub a {
+    color: var(--teal-dark);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  /* ── NHS NOTE ── */
+  .nhs-note {
+    background: var(--cream-dark);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .nhs-note strong { color: var(--teal-dark); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (min-width: 640px) {
+    .main {
+      max-width: 540px;
+      padding: 36px 24px 80px;
+    }
+
+    .doctor-card { padding: 24px; }
+    .testimonial { padding: 24px; }
+    .price-block { padding: 28px 24px; }
+    .accreditation-grid { gap: 12px; }
+  }
+
+  @media (max-width: 380px) {
+    .accreditation-grid {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 16px;
+    }
+
+    .accreditation-item {
+      flex: 0 0 auto;
+    }
+
+    .step-label {
+      font-size: 11px;
+    }
+
+    .doctor-card {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .testimonial blockquote {
+      font-size: 14px;
+    }
+  }
+
+  /* Touch-friendly carousel swipe area */
+  .carousel-container {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <svg viewBox="0 0 32 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 2C4 2 2 6 2 10C2 14 5 18 8 18C11 18 13 15 14 12" stroke="#1a3a3a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <path d="M14 12C15 15 17 18 20 18C23 18 26 14 26 10" stroke="#1a3a3a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <path d="M20 2C17 2 15 5 14 8" stroke="#1a3a3a" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="8" cy="2" r="1.5" fill="#1a3a3a"/>
+      <circle cx="20" cy="2" r="1.5" fill="#1a3a3a"/>
+    </svg>
+    theta sleep
+  </div>
+  <span class="nav-help">Any questions?</span>
+</nav>
+
+<!-- PROGRESS -->
+<div class="progress-bar">
+  <div class="progress-steps">
+    <div class="step done">
+      <div class="step-dot">&#10003;</div>
+      <span class="step-label">Symptoms</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step active">
+      <div class="step-dot">2</div>
+      <span class="step-label">Your plan</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step upcoming">
+      <div class="step-dot">3</div>
+      <span class="step-label">Payment</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- DOCTOR CARD -->
+  <div class="doctor-card">
+    <div class="doctor-photo">TC</div>
+    <div class="doctor-info">
+      <div class="title">Your sleep specialist</div>
+      <h3>Dr Tom Chambers</h3>
+      <p>Consultant Respiratory Physician, 14 years NHS sleep medicine. Lead clinician at Theta Sleep.</p>
+      <div class="gmc-badge"><span class="gmc-check">&#10003;</span> GMC Registered</div>
+    </div>
+  </div>
+
+  <!-- WHAT HAPPENS -->
+  <div class="section-label">What happens next</div>
+
+  <div class="process-steps">
+    <div class="process-step">
+      <div class="step-left">
+        <div class="step-number">1</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-content">
+        <h4>Home sleep test, posted to you</h4>
+        <p>Based on your answers, we send you the most suitable test. Wear it overnight — it's simple and comfortable.</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-left">
+        <div class="step-number">2</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-content">
+        <h4>Consultation with your doctor</h4>
+        <p>Video or phone call with your named consultant. They'll walk you through your results, diagnosis, and options.</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <div class="step-left">
+        <div class="step-number">3</div>
+      </div>
+      <div class="step-content">
+        <h4>Your report and treatment plan</h4>
+        <p>A full clinical report you can share with your GP. Choose to start treatment with us, or continue via the NHS — no obligation.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALUE COMPARISON -->
+  <div class="value-comparison">
+    <h3>Why patients choose Theta Sleep</h3>
+    <div class="comparison-row">
+      <span class="comparison-label">Time to diagnosis</span>
+      <span class="comparison-nhs">12-18 months</span>
+      <span class="comparison-theta highlight">2-3 weeks</span>
+    </div>
+    <div class="comparison-row">
+      <span class="comparison-label">Sleep overnight in clinic</span>
+      <span class="comparison-nhs">Required</span>
+      <span class="comparison-theta highlight">Not needed</span>
+    </div>
+    <div class="comparison-row">
+      <span class="comparison-label">Private clinic cost</span>
+      <span class="comparison-nhs">&pound;800-&pound;1,500</span>
+      <span class="comparison-theta">&pound;475</span>
+    </div>
+  </div>
+
+  <!-- ACCREDITATION BAR -->
+  <div class="accreditation-bar">
+    <div class="accreditation-grid">
+      <!-- NHS DTAC -->
+      <div class="accreditation-item">
+        <svg width="28" height="16" viewBox="0 0 28 16" fill="none">
+          <rect width="28" height="16" rx="2" fill="#005eb8"/>
+          <text x="14" y="11.5" text-anchor="middle" fill="white" font-size="7" font-weight="800" font-family="Arial, sans-serif">NHS</text>
+        </svg>
+        <span class="accreditation-text">DTAC</span>
+      </div>
+      <!-- DCB1596 -->
+      <div class="accreditation-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="1" width="14" height="14" rx="2" stroke="#1a3a3a" stroke-width="1.2" fill="none"/>
+          <path d="M4 8L7 11L12 5" stroke="#1a3a3a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span class="accreditation-text">DCB1596</span>
+      </div>
+      <!-- Cyber Essentials -->
+      <div class="accreditation-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1L2 4V8C2 11.3 4.7 14.2 8 15C11.3 14.2 14 11.3 14 8V4L8 1Z" fill="#2d8a4e" opacity="0.15" stroke="#2d8a4e" stroke-width="1"/>
+          <path d="M5.5 8L7 9.5L10.5 6" stroke="#2d8a4e" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="accreditation-text">Cyber Essentials</span>
+      </div>
+      <!-- CQC -->
+      <div class="accreditation-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6.5" stroke="#1a3a3a" stroke-width="1"/>
+          <path d="M5.5 8.5Q8 4 10.5 8.5" stroke="#1a3a3a" stroke-width="1" fill="none" stroke-linecap="round"/>
+          <circle cx="8" cy="9.5" r="1" fill="#1a3a3a"/>
+        </svg>
+        <span class="accreditation-text"><span class="light">Care Quality</span><br>Commission</span>
+      </div>
+      <!-- GDPR -->
+      <div class="accreditation-item">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6.5" stroke="#1a3a3a" stroke-width="1"/>
+          <circle cx="8" cy="8" r="3" stroke="#1a3a3a" stroke-width="0.8" fill="none"/>
+          <circle cx="8" cy="8" r="0.8" fill="#1a3a3a"/>
+          <line x1="8" y1="1.5" x2="8" y2="3.5" stroke="#1a3a3a" stroke-width="0.7"/>
+          <line x1="8" y1="12.5" x2="8" y2="14.5" stroke="#1a3a3a" stroke-width="0.7"/>
+          <line x1="1.5" y1="8" x2="3.5" y2="8" stroke="#1a3a3a" stroke-width="0.7"/>
+          <line x1="12.5" y1="8" x2="14.5" y2="8" stroke="#1a3a3a" stroke-width="0.7"/>
+        </svg>
+        <span class="accreditation-text">GDPR</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIAL CAROUSEL -->
+  <div class="testimonial-section">
+    <div class="swiper testimonial-swiper">
+      <div class="swiper-wrapper">
+
+        <!-- Testimonial 1: Sue -->
+        <div class="swiper-slide">
+          <div class="testimonial">
+            <blockquote>"I'd been exhausted for three years. My GP kept saying it was stress. Within two weeks of getting my Theta Sleep results I was on treatment — and within a month the brain fog had completely lifted."</blockquote>
+            <div class="testimonial-author">
+              <div class="author-photo" style="background: linear-gradient(135deg, #d4a574, #c49060);">S</div>
+              <div>
+                <div class="author-name">Sue, 54</div>
+                <div class="author-detail">Diagnosed with moderate OSA &middot; Manchester</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 2: Sean -->
+        <div class="swiper-slide">
+          <div class="testimonial">
+            <blockquote>"I was diagnosed with sleep apnoea. I didn't have a clue I was stopping breathing — I just felt tired in the morning. With treatment, you wake up the next day and it's like you're a new man. It's a game changer."</blockquote>
+            <div class="testimonial-author">
+              <div class="author-photo" style="background: linear-gradient(135deg, #8aacb8, #5d8a96);">S</div>
+              <div>
+                <div class="author-name">Sean, 61</div>
+                <div class="author-detail">Diagnosed with severe OSA &middot; Birmingham</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Testimonial 3: Frederic -->
+        <div class="swiper-slide">
+          <div class="testimonial">
+            <blockquote>"I was concerned I might have sleep apnoea. Thanks to the test and the consultation I can now rest assured that this is not the case. A very thorough and professional service."</blockquote>
+            <div class="testimonial-author">
+              <div class="author-photo" style="background: linear-gradient(135deg, #9eb8a8, #6d9080);">F</div>
+              <div>
+                <div class="author-name">Frederic, 48</div>
+                <div class="author-detail">Peace of mind &middot; London</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="swiper-pagination"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-button-next"></div>
+    </div>
+    <button class="more-testimonials-link" id="openModal">More testimonials</button>
+  </div>
+
+  <!-- TESTIMONIALS MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>What our patients say</h3>
+        <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+
+        <div class="testimonial">
+          <blockquote>"I'd been exhausted for three years. My GP kept saying it was stress. Within two weeks of getting my Theta Sleep results I was on treatment — and within a month the brain fog had completely lifted."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-photo" style="background: linear-gradient(135deg, #d4a574, #c49060);">S</div>
+            <div>
+              <div class="author-name">Sue, 54</div>
+              <div class="author-detail">Diagnosed with moderate OSA &middot; Manchester</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial">
+          <blockquote>"I was diagnosed with sleep apnoea. I didn't have a clue I was stopping breathing, I just felt tired in the morning. With treatment, you wake up next day and it's like you're a new man — it's a game changer, it's brilliant."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-photo" style="background: linear-gradient(135deg, #8aacb8, #5d8a96);">S</div>
+            <div>
+              <div class="author-name">Sean, 61</div>
+              <div class="author-detail">Diagnosed with severe OSA &middot; Birmingham</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial">
+          <blockquote>"I was concerned that I might have sleep apnoea or something similar, and thanks to the test, diagnostic and discussion, I can now rest assured that this is not the case. Very thorough and professional service."</blockquote>
+          <div class="testimonial-author">
+            <div class="author-photo" style="background: linear-gradient(135deg, #9eb8a8, #6d9080);">F</div>
+            <div>
+              <div class="author-name">Frederic, 48</div>
+              <div class="author-detail">Peace of mind &middot; London</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE BLOCK -->
+  <div class="price-block">
+    <div class="price-header">
+      <div>
+        <div class="price-label">Complete home pathway</div>
+        <div class="price-amount">&pound;475</div>
+        <div class="price-sub">One payment &middot; No hidden costs</div>
+      </div>
+    </div>
+    <div class="price-includes">
+      <div class="include-item">
+        <div class="include-check">&#10003;</div>
+        <span>Home sleep test device, posted to you</span>
+      </div>
+      <div class="include-item">
+        <div class="include-check">&#10003;</div>
+        <span>Clinical analysis by a sleep specialist</span>
+      </div>
+      <div class="include-item">
+        <div class="include-check">&#10003;</div>
+        <span>Video or phone consultation with your doctor</span>
+      </div>
+      <div class="include-item">
+        <div class="include-check">&#10003;</div>
+        <span>Comprehensive clinical report</span>
+      </div>
+      <div class="include-item">
+        <div class="include-check">&#10003;</div>
+        <span>Treatment recommendations — no obligation</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-block">
+    <button class="cta-button">Continue to payment &rarr;</button>
+    <div class="cta-sub">
+      Secure payment &middot; <a>Any questions before you pay?</a>
+    </div>
+
+    <div class="nhs-note">
+      <strong>Not sure yet?</strong> After your diagnosis, you can choose to start treatment with us or take your results to the NHS. You're never locked in.
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+(function() {
+  // ── Swiper carousel ──
+  new Swiper('.testimonial-swiper', {
+    loop: true,
+    speed: 400,
+    effect: 'slide',
+    grabCursor: true,
+    pagination: {
+      el: '.testimonial-swiper .swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      prevEl: '.testimonial-swiper .swiper-button-prev',
+      nextEl: '.testimonial-swiper .swiper-button-next',
+    },
+    a11y: {
+      prevSlideMessage: 'Previous testimonial',
+      nextSlideMessage: 'Next testimonial',
+    },
+  });
+
+  // ── Modal ──
+  var overlay = document.getElementById('modalOverlay');
+  var openBtn = document.getElementById('openModal');
+  var closeBtn = document.getElementById('modalClose');
+
+  openBtn.addEventListener('click', function() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  });
+
+  closeBtn.addEventListener('click', function() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
