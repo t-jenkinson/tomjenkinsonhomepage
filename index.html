@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tom Jenkinson</title>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
 <style>
   :root {
@@ -70,12 +72,39 @@
 
   .nav-links a:hover { opacity: 1; }
 
-  /* ── SOCIAL ICONS (below subtitle) ── */
+  /* ── HOVER TITLE (typed in on nav-item hover; sits where socials used to) ── */
+  .hover-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(16px, 2.2vw, 22px);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    color: var(--black);
+    margin-top: 32px;
+    min-height: 1.2em;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .hover-title.active::after {
+    content: '_';
+    display: inline-block;
+    margin-left: 6px;
+    color: var(--sage);
+    animation: blink 0.6s step-end infinite;
+    font-weight: 400;
+  }
+
+  body.video-mode .hover-title { color: var(--white); }
+  body.video-mode .hover-title.active::after { color: var(--sage); }
+
+  /* ── SOCIAL ICONS (pushed below hover title) ── */
   .socials {
     display: flex;
     justify-content: center;
     gap: 14px;
-    margin-top: 24px;
+    margin-top: 56px;
     opacity: 0;
     transition: opacity 0.6s ease;
   }
@@ -206,7 +235,7 @@
     cursor: pointer;
     text-decoration: none;
     color: var(--black);
-    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.6s ease;
+    transition: transform 1.6s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.6s ease;
     opacity: 0;
     transform-origin: center;
   }
@@ -216,7 +245,12 @@
   }
 
   .nav-item:hover {
+    transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.6s ease;
     transform: scale(1.03) !important;
+  }
+
+  .nav-about:hover {
+    transform: scale(2) !important;
   }
 
   .nav-item:hover .nav-label {
@@ -224,6 +258,7 @@
   }
 
   .nav-item:hover .item-image {
+    transition: filter 0.3s, transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
     filter: grayscale(0);
   }
 
@@ -231,13 +266,12 @@
     width: 180px;
     height: auto;
     display: block;
-    border-radius: 6px;
     filter: grayscale(0.3);
-    transition: filter 0.4s, transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: filter 1.2s, transform 1.6s cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   .nav-label {
+    display: none;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -280,9 +314,14 @@
   }
 
   .nav-film {
-    bottom: 55%;
-    right: 100px;
-    transform: rotate(-1deg);
+    bottom: 4%;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) rotate(15deg);
+  }
+
+  .nav-film .item-image {
+    width: 270px;
   }
 
   /* ── VIDEO BACKGROUND ── */
@@ -293,13 +332,18 @@
     opacity: 0;
     transition: opacity 0.8s ease;
     pointer-events: none;
-    background: linear-gradient(135deg, #0a0a0a, #1a1a2e, #0f3460, #0a0a0a);
-    background-size: 400% 400%;
+    background: #0a0a0a;
+  }
+
+  .video-bg video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .video-bg.active {
     opacity: 1;
-    animation: gradientShift 8s ease infinite;
   }
 
   body.video-mode {
@@ -322,6 +366,7 @@
 
   body.video-mode .name .char { color: var(--white); }
   body.video-mode .intro { color: var(--white); }
+  body.video-mode .intro.revealed { opacity: 0.85; }
   body.video-mode .cursor { background: var(--white); }
   body.video-mode .nav-label { color: var(--white); }
   body.video-mode .item-image { filter: grayscale(0.5) brightness(0.8); }
@@ -352,6 +397,200 @@
     100% { background-position: 0% 50%; }
   }
 
+  /* ── INTRO GATE ── */
+  #intro-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease, background-color 0.08s linear;
+  }
+
+  #intro-gate.flash { background: #fff; }
+  #intro-gate.flash #intro-video { opacity: 0; }
+
+  #intro-gate.exiting {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Lift the hero content above the gate while the intro is playing,
+     so title + subtitle animate in visibly over the video. */
+  body.intro-active .center-content {
+    z-index: 10001;
+  }
+
+  /* ── MASTHEAD (transparent → black on hover) ── */
+  .masthead {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: transparent;
+    color: var(--gray-40);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.6s ease, background-color 0.3s ease, color 0.3s ease;
+  }
+  .masthead.revealed { opacity: 1; }
+  .masthead:hover {
+    background: var(--black);
+    color: var(--white);
+  }
+
+  .masthead .left,
+  .masthead .right { display: flex; gap: 18px; align-items: center; }
+
+  .masthead-nav { display: flex; gap: 16px; }
+  .masthead-nav a {
+    color: inherit;
+    text-decoration: none;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  /* On bar-hover, dim non-focused links so the cursor target stands out */
+  .masthead:hover .masthead-nav a { opacity: 0.6; }
+  .masthead:hover .masthead-nav a:hover { opacity: 1; }
+
+  .masthead .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #c8302e;
+    box-shadow: 0 0 10px #c8302e;
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse-dot { 50% { opacity: 0.3; } }
+
+  /* ── EXPOSURE READOUT (top-right) ── */
+  .exposure {
+    position: fixed;
+    top: 56px;
+    right: 24px;
+    z-index: 40;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.7;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gray-70);
+    opacity: 0;
+    transition: opacity 0.6s ease, color 0.3s ease;
+    pointer-events: none;
+    min-width: 200px;
+  }
+  .exposure.revealed { opacity: 1; }
+  .exposure-row { white-space: nowrap; min-height: 1.7em; }
+  .exposure-row:first-child {
+    color: var(--black);
+    font-weight: 700;
+  }
+  .exposure-row.typing::after {
+    content: '_';
+    margin-left: 2px;
+    color: #c8302e;
+    animation: blink 0.6s step-end infinite;
+  }
+
+  body.video-mode .exposure { color: rgba(255,255,255,0.6); }
+  body.video-mode .exposure-row:first-child { color: var(--white); }
+
+  /* ── CHROMATIC ABERRATION ON HERO NAME ── */
+  .name .char.revealed {
+    text-shadow:
+      1.5px 0 0 rgba(200, 48, 46, 0.45),
+      -1.5px 0 0 rgba(45, 120, 130, 0.28);
+  }
+  body.video-mode .name .char.revealed {
+    text-shadow:
+      1.5px 0 0 rgba(232, 84, 82, 0.55),
+      -1.5px 0 0 rgba(120, 200, 210, 0.35);
+  }
+
+  #intro-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  #intro-gate.playing #intro-video { opacity: 0.75; }
+  #intro-gate.playing .intro-splash { opacity: 0; pointer-events: none; }
+
+  .intro-splash {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: #fff;
+    transition: opacity 0.3s ease;
+  }
+
+  .intro-enter {
+    font-family: 'Archivo', sans-serif;
+    font-size: clamp(36px, 7vw, 80px);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+    text-transform: uppercase;
+    color: #fff;
+    background: transparent;
+    border: none;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .intro-enter:hover,
+  .intro-enter:focus { opacity: 1; }
+  .intro-enter::-moz-focus-inner { border: 0; }
+
+  .intro-hint {
+    margin-top: 28px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+  }
+
+  .intro-skip {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    z-index: 3;
+    font-family: 'Archivo', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.5);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease, color 0.3s ease;
+  }
+
+  #intro-gate.playing .intro-skip { opacity: 1; }
+  .intro-skip:hover { color: #fff; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 900px) {
     .nav-work { left: 40px; }
@@ -359,7 +598,6 @@
     .nav-about { left: 40px; }
     .nav-presets { left: 40px; }
     .nav-blog { right: 40px; }
-    .nav-film { right: 40px; }
     .item-image { width: 120px; }
   }
 
@@ -399,6 +637,8 @@
 
     .item-image { width: 140px; }
 
+    .nav-label { display: block; }
+
     .center-content {
       padding: 20px 16px;
     }
@@ -406,20 +646,51 @@
 </style>
 </head>
 <body>
+<!-- ── INTRO GATE ── -->
+<div id="intro-gate" aria-hidden="false">
+  <video id="intro-video" playsinline preload="auto">
+    <source src="video/intro.mp4" type="video/mp4">
+  </video>
+  <div class="intro-splash">
+    <button type="button" class="intro-enter" id="intro-enter" autofocus>ENTER</button>
+    <div class="intro-hint">SOUND ON · CLICK TO BEGIN</div>
+  </div>
+  <button type="button" class="intro-skip" id="intro-skip" aria-label="Skip intro">SKIP</button>
+</div>
+
 <div id="grain-container"></div>
 
-<!-- ── FLOATING MENU (top-right) ── -->
-<nav>
-  <ul class="nav-links">
-    <li><a href="work.html">WORK</a></li>
-    <li><a href="info.html">INFO</a></li>
-    <li><a href="creative.html">CREATIVE</a></li>
-    <li><a href="about.html">ABOUT</a></li>
-  </ul>
-</nav>
+<!-- ── MASTHEAD ── -->
+<header class="masthead" id="masthead">
+  <div class="left">
+    <span class="dot" aria-hidden="true"></span>
+    <span>TJ // PORTFOLIO</span>
+    <span class="masthead-nav">
+      <a href="work.html">WORK</a>
+      <a href="info.html">INFO</a>
+      <a href="creative.html">CREATIVE</a>
+      <a href="about.html">ABOUT</a>
+    </span>
+  </div>
+  <div class="right">
+    <span id="masthead-date">2026-04-16</span>
+    <span>FRAME 06 / ROLL 01</span>
+  </div>
+</header>
+
+<!-- ── EXPOSURE READOUT ── -->
+<div class="exposure" id="exposure" aria-live="polite">
+  <div class="exposure-row" data-line="0"></div>
+  <div class="exposure-row" data-line="1"></div>
+  <div class="exposure-row" data-line="2"></div>
+</div>
 
 <!-- Video background -->
-<div class="video-bg" id="videoBg"></div>
+<div class="video-bg" id="videoBg">
+  <video id="bgVideo" muted loop playsinline preload="auto">
+    <source src="video/arch2.mp4" type="video/mp4">
+  </video>
+</div>
 
 <div class="canvas">
 
@@ -427,6 +698,8 @@
   <div class="center-content">
     <h1 class="name" id="nameEl" aria-label="TOM JENKINSON"></h1>
     <p class="intro" id="introEl">HI I'M TOM, I'M A PRODUCT MANAGER WITH A LOVE OF GREAT DESIGN, WORKING WITH SMART PEOPLE AND PHOTOGRAPHY. TAKE A LOOK AROUND.<span class="cursor" id="cursor"></span></p>
+
+    <div class="hover-title" id="hoverTitle" aria-hidden="true"></div>
 
     <div class="socials" id="socials">
       <a href="https://www.instagram.com/t_jenkins0n/" aria-label="Instagram" target="_blank" rel="noopener">
@@ -441,39 +714,39 @@
   <!-- ── Navigation Objects ── -->
   <div class="nav-objects">
 
-    <!-- MacBook Pro → Work -->
-    <a href="work.html" class="nav-item nav-work" id="navWork">
+    <!-- MacBook Pro → Work (hidden) -->
+    <a href="work.html" class="nav-item nav-work" id="navWork" style="display: none;" aria-hidden="true">
       <img class="item-image" src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&q=80&auto=format" alt="MacBook Pro" loading="eager">
       <div class="nav-label">WORK</div>
     </a>
 
     <!-- Leica M6 → Creative / Photography -->
     <a href="creative.html" class="nav-item nav-creative" id="navCreative">
-      <img class="item-image" src="imgs/Leica.png" alt="Leica M6" loading="eager">
+      <img class="item-image" src="imgs/Leica Background Removed.png" alt="Leica M6" loading="eager">
       <div class="nav-label">CREATIVE</div>
     </a>
 
     <!-- About / Bio -->
     <a href="about.html" class="nav-item nav-about" id="navAbout">
-      <img class="item-image" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80&auto=format&fit=crop&crop=face" alt="About" loading="lazy">
+      <img class="item-image" src="imgs/6BEFCA39-A871-4CCB-86B2-DC4E9A9D9728-labbet-app.JPG" alt="About" loading="lazy">
       <div class="nav-label">ABOUT</div>
     </a>
 
     <!-- Preset Shop -->
     <a href="presets.html" class="nav-item nav-presets" id="navPresets">
-      <img class="item-image" src="https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=400&q=80&auto=format" alt="Photography Presets" loading="lazy">
+      <img class="item-image" src="imgs/png-clipart-graphic-film-kodak-portra-graphy-camera-film-35-mm Background Removed.png" alt="Photography Presets" loading="lazy" style="transform: rotate(30deg);">
       <div class="nav-label">PRESET SHOP</div>
     </a>
 
     <!-- Blog -->
     <a href="blog.html" class="nav-item nav-blog" id="navBlog">
-      <img class="item-image" src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400&q=80&auto=format" alt="Travel Blog" loading="lazy">
+      <img class="item-image" src="imgs/IMG_8796 Background Removed.png" alt="Travel Blog" loading="lazy">
       <div class="nav-label">BLOG</div>
     </a>
 
     <!-- Super 8 → Film / Video -->
     <button class="nav-item nav-film" id="reelBtn" style="border: none; background: none; font-family: inherit; text-transform: uppercase; letter-spacing: -0.02em; cursor: pointer;">
-      <img class="item-image" src="imgs/Super 8.png.webp" alt="Super 8 Camera" loading="eager">
+      <img class="item-image" src="imgs/IMG_8794 Background Removed.png" alt="Super 8 Camera" loading="eager">
       <div class="nav-label">FILM</div>
       <div class="reel-status" id="reelStatus">CLICK TO PLAY</div>
     </button>
@@ -510,30 +783,142 @@
     if (charIndex < chars.length) {
       chars[charIndex].classList.add('revealed');
       charIndex++;
-      setTimeout(typeNext, 50 + Math.random() * 30);
+      setTimeout(typeNext, 70 + Math.random() * 40);
     } else {
-      // After name is typed, reveal intro + socials
-      setTimeout(() => {
-        introEl.classList.add('revealed');
-        setTimeout(() => {
-          document.getElementById('socials').classList.add('revealed');
-        }, 300);
-        // Reveal nav items with stagger
-        const items = ['navWork', 'navCreative', 'navAbout', 'navPresets', 'navBlog', 'reelBtn'];
-        items.forEach((id, i) => {
-          setTimeout(() => {
-            document.getElementById(id).classList.add('revealed');
-            if (i === items.length - 1) {
-              setTimeout(() => cursor.classList.add('hidden'), 800);
-            }
-          }, 400 + i * 150);
-        });
-      }, 300);
+      // Name finished — reveal the intro paragraph. Socials/nav items wait for Phase 2.
+      setTimeout(() => introEl.classList.add('revealed'), 200);
     }
   }
 
-  // Start typing after a brief pause
-  setTimeout(typeNext, 400);
+  // Phase 1: name + intro. Fires on ENTER click so it animates during the video.
+  window.startHomeIntro = function() {
+    if (window.__phase1Started) return;
+    window.__phase1Started = true;
+    setTimeout(typeNext, 300);
+  };
+
+  // ── MASTHEAD DATE ──
+  (function() {
+    const dateEl = document.getElementById('masthead-date');
+    if (!dateEl) return;
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    dateEl.textContent = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  })();
+
+  // ── EXPOSURE READOUT (per-icon profiles, typed out on hover) ──
+  const EXPOSURE_PROFILES = {
+    default:     ['EXP. 1/250',  'F2.8 · ISO 400',   'LEICA M6 / TRI-X 400'],
+    navWork:     ['EXP. 1/60',   'F4.0 · ISO 800',   'MBP M3 / DAYLIGHT'],
+    navCreative: ['EXP. 1/500',  'F2.0 · ISO 100',   'LEICA M6 / EKTAR 100'],
+    navAbout:    ['EXP. 1/125',  'F2.8 · ISO 200',   'PORTRA 400 / SUMMICRON 50'],
+    navPresets:  ['EXP. 1/1000', 'F5.6 · ISO 100',   'EKTAR 100 / 35MM'],
+    navBlog:     ['EXP. 1/2000', 'F8.0 · ISO 200',   'RICOH GR III / DAYLIGHT'],
+    reelBtn:     ['18 FPS',      'F2.8 · TRI-X 200', 'SUPER 8 / KODAK']
+  };
+
+  let exposureTimers = [];
+  function clearExposureTyping() {
+    exposureTimers.forEach(clearTimeout);
+    exposureTimers = [];
+    document.querySelectorAll('.exposure-row').forEach(r => r.classList.remove('typing'));
+  }
+  function typeExposure(profile) {
+    clearExposureTyping();
+    const rows = document.querySelectorAll('.exposure-row');
+    rows.forEach((row, i) => {
+      const text = profile[i] || '';
+      row.textContent = '';
+      row.classList.add('typing');
+      const start = i * 70;
+      for (let j = 0; j < text.length; j++) {
+        const ch = text[j];
+        exposureTimers.push(setTimeout(() => {
+          row.textContent += ch;
+        }, start + j * 18));
+      }
+      exposureTimers.push(setTimeout(() => {
+        row.classList.remove('typing');
+      }, start + text.length * 18 + 120));
+    });
+  }
+
+  function bindExposureHovers() {
+    Object.keys(EXPOSURE_PROFILES).forEach(id => {
+      if (id === 'default') return;
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('mouseenter', () => typeExposure(EXPOSURE_PROFILES[id]));
+      el.addEventListener('mouseleave', () => typeExposure(EXPOSURE_PROFILES.default));
+    });
+  }
+  bindExposureHovers();
+
+  // ── HOVER TITLE (large typed-out label on nav-item hover) ──
+  const HOVER_TITLES = {
+    navWork: 'WORK',
+    navCreative: 'CREATIVE',
+    navAbout: 'ABOUT',
+    navPresets: 'PRESET SHOP',
+    navBlog: 'BLOG',
+    reelBtn: 'FILM'
+  };
+  const hoverTitleEl = document.getElementById('hoverTitle');
+  let hoverTitleTimers = [];
+  function clearHoverTitle() {
+    hoverTitleTimers.forEach(clearTimeout);
+    hoverTitleTimers = [];
+    hoverTitleEl.textContent = '';
+    hoverTitleEl.classList.remove('active');
+  }
+  function typeHoverTitle(text) {
+    clearHoverTitle();
+    hoverTitleEl.classList.add('active');
+    for (let j = 0; j < text.length; j++) {
+      const ch = text[j];
+      hoverTitleTimers.push(setTimeout(() => {
+        hoverTitleEl.textContent += ch;
+      }, j * 45));
+    }
+  }
+  Object.keys(HOVER_TITLES).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('mouseenter', () => typeHoverTitle(HOVER_TITLES[id]));
+    el.addEventListener('mouseleave', clearHoverTitle);
+    el.addEventListener('focus', () => typeHoverTitle(HOVER_TITLES[id]));
+    el.addEventListener('blur', clearHoverTitle);
+  });
+
+  // Phase 2: socials + nav items + hide cursor + masthead/exposure. Fires after video ends.
+  window.startHomeIntroPhase2 = function() {
+    if (window.__phase2Started) return;
+    window.__phase2Started = true;
+    document.getElementById('masthead').classList.add('revealed');
+    const exposureEl = document.getElementById('exposure');
+    exposureEl.classList.add('revealed');
+    typeExposure(EXPOSURE_PROFILES.default);
+    document.getElementById('socials').classList.add('revealed');
+    const items = ['navCreative', 'navAbout', 'navPresets', 'navBlog', 'reelBtn'];
+    items.forEach((id, i) => {
+      setTimeout(() => {
+        document.getElementById(id).classList.add('revealed');
+        if (i === items.length - 1) {
+          setTimeout(() => cursor.classList.add('hidden'), 800);
+        }
+      }, i * 130);
+    });
+  };
+
+  // Convenience for the no-video path (reduced-motion, returning visitors, video errors)
+  window.startHomeIntroAuto = function() {
+    window.startHomeIntro();
+    setTimeout(window.startHomeIntroPhase2, 1800);
+  };
+
+  if (!document.getElementById('intro-gate')) {
+    window.startHomeIntroAuto();
+  }
 
   // ── PRESET PAGE TRANSITION (FLIP) ──
   var navPresets = document.getElementById('navPresets');
@@ -562,18 +947,144 @@
     setTimeout(function() { window.location.href = href; }, 130);
   });
 
-  // ── FILM REEL TOGGLE ──
+  // ── FILM REEL CYCLE ──
+  // Click → turn on + play first video. Each subsequent click advances.
+  // After the last reel, one more click ends video mode and resets to the start.
   const reelBtn = document.getElementById('reelBtn');
   const videoBg = document.getElementById('videoBg');
+  const bgVideo = document.getElementById('bgVideo');
   const reelStatus = document.getElementById('reelStatus');
-  let isPlaying = false;
+
+  const VIDEO_SEQUENCE = [
+    'video/arch2.mp4',
+    'video/malawi.mp4',
+    'video/road-to-nowhere.mp4'
+  ];
+  let videoIdx = -1;
+  let preloaded = false;
+
+  function preloadRest() {
+    if (preloaded) return;
+    preloaded = true;
+    for (let i = 1; i < VIDEO_SEQUENCE.length; i++) {
+      const v = document.createElement('video');
+      v.preload = 'auto';
+      v.muted = true;
+      v.src = VIDEO_SEQUENCE[i];
+      v.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
+      document.body.appendChild(v);
+      v.load();
+    }
+  }
 
   reelBtn.addEventListener('click', function(e) {
     e.preventDefault();
-    isPlaying = !isPlaying;
-    videoBg.classList.toggle('active', isPlaying);
-    document.body.classList.toggle('video-mode', isPlaying);
-    reelStatus.textContent = isPlaying ? 'CLICK TO STOP' : 'CLICK TO PLAY';
+
+    if (videoIdx === -1) {
+      // Off → first reel
+      videoIdx = 0;
+      videoBg.classList.add('active');
+      document.body.classList.add('video-mode');
+      preloadRest();
+    } else if (videoIdx < VIDEO_SEQUENCE.length - 1) {
+      // Advance to next reel
+      videoIdx++;
+    } else {
+      // Past the last reel → end the cycle, reset to off
+      videoIdx = -1;
+      videoBg.classList.remove('active');
+      document.body.classList.remove('video-mode');
+      bgVideo.pause();
+      reelStatus.textContent = 'CLICK TO PLAY';
+      return;
+    }
+
+    bgVideo.src = VIDEO_SEQUENCE[videoIdx];
+    bgVideo.load();
+    bgVideo.play().catch(() => {});
+
+    const isLast = videoIdx === VIDEO_SEQUENCE.length - 1;
+    reelStatus.textContent = isLast
+      ? `CLICK TO STOP · ${videoIdx + 1} / ${VIDEO_SEQUENCE.length}`
+      : `NEXT REEL · ${videoIdx + 1} / ${VIDEO_SEQUENCE.length}`;
+  });
+})();
+</script>
+
+<script>
+// ── INTRO GATE CONTROLLER ──
+(function() {
+  const SESSION_KEY = 'intro-seen';
+  const gate = document.getElementById('intro-gate');
+  if (!gate) return;
+
+  const video = document.getElementById('intro-video');
+  const enterBtn = document.getElementById('intro-enter');
+  const skipBtn = document.getElementById('intro-skip');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const alreadySeen = (function() { try { return sessionStorage.getItem(SESSION_KEY); } catch (e) { return null; } })();
+
+  function markSeen() {
+    try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (e) {}
+  }
+
+  function finishAndExit(withFlash) {
+    markSeen();
+    try { video.pause(); } catch (e) {}
+    gate.setAttribute('aria-hidden', 'true');
+
+    // Drop the inverted-color mode so text returns to its normal (black) styling.
+    // Doing this at the flash moment means the color change is hidden behind the white.
+    document.body.classList.remove('video-mode');
+
+    if (withFlash) gate.classList.add('flash');
+    if (typeof window.startHomeIntroPhase2 === 'function') window.startHomeIntroPhase2();
+
+    const holdMs = withFlash ? 140 : 0;
+    setTimeout(function() {
+      gate.classList.add('exiting');
+      gate.addEventListener('transitionend', function onEnd(e) {
+        if (e.propertyName !== 'opacity') return;
+        gate.removeEventListener('transitionend', onEnd);
+        gate.remove();
+        document.body.classList.remove('intro-active');
+      });
+    }, holdMs);
+  }
+
+  function skipImmediately() {
+    markSeen();
+    gate.remove();
+    document.body.classList.remove('intro-active', 'video-mode');
+    if (typeof window.startHomeIntroAuto === 'function') window.startHomeIntroAuto();
+  }
+
+  if (reducedMotion || alreadySeen) {
+    skipImmediately();
+    return;
+  }
+
+  enterBtn.addEventListener('click', function() {
+    document.body.classList.add('intro-active', 'video-mode');
+    gate.classList.add('playing');
+    video.muted = false;
+    if (typeof window.startHomeIntro === 'function') window.startHomeIntro();
+    const p = video.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(function() {
+        // Autoplay-with-sound refused — retry muted so the visual still plays
+        video.muted = true;
+        video.play().catch(skipImmediately);
+      });
+    }
+  });
+
+  video.addEventListener('ended', function() { finishAndExit(true); });
+  video.addEventListener('error', skipImmediately);
+
+  skipBtn.addEventListener('click', function() { finishAndExit(false); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.body.contains(gate)) finishAndExit(false);
   });
 })();
 </script>

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TJ — Moodboard v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Black&family=JetBrains+Mono:wght@300;400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<style>
+  :root {
+    /* OFF-WHITE PAPER STOCK */
+    --cream:        #f0ebde;
+    --cream-warm:   #ece4d0;
+    --cream-deep:   #e2d8be;
+
+    /* INK */
+    --ink:          #14110d;
+    --ink-soft:     #2a241c;
+    --ink-40:       rgba(20,17,13,0.4);
+    --ink-15:       rgba(20,17,13,0.15);
+    --ink-08:       rgba(20,17,13,0.08);
+
+    /* ACCENTS */
+    --oxblood:      #8b3a2a;
+    --hazard:       #e8d45a;
+    --sharpie:      #c8302e;
+    --darkroom:     #2d3b3a;
+
+    /* META */
+    --gutter: 32px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Archivo', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── PAPER TEXTURE LAYER (SVG noise, fixed) ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08, 0 0 0 0 0.07, 0 0 0 0 0.05, 0 0 0 0.6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+  }
+
+  /* ── DUST / SCRATCHES (subtle, larger pattern, fixed) ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='1200'><g stroke='%23000' stroke-opacity='0.18' stroke-linecap='round'><line x1='120' y1='40' x2='160' y2='80' stroke-width='0.6'/><line x1='820' y1='240' x2='840' y2='200' stroke-width='0.5'/><line x1='400' y1='600' x2='480' y2='620' stroke-width='0.4'/><line x1='1020' y1='800' x2='1040' y2='760' stroke-width='0.7'/><line x1='240' y1='1080' x2='200' y2='1040' stroke-width='0.5'/></g><g fill='%23000' fill-opacity='0.18'><circle cx='320' cy='180' r='0.8'/><circle cx='720' cy='420' r='1.1'/><circle cx='980' cy='140' r='0.6'/><circle cx='180' cy='820' r='1.4'/><circle cx='600' cy='980' r='0.7'/><circle cx='1100' cy='540' r='0.9'/></g></svg>");
+    opacity: 0.55;
+    mix-blend-mode: multiply;
+  }
+
+  /* p5 grain canvas sits even higher */
+  #grain-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+    mix-blend-mode: multiply;
+    opacity: 0.18;
+  }
+
+  /* All real content above the texture stack */
+  main, header, footer { position: relative; z-index: 10; }
+
+  /* ── TOP MASTHEAD STRIP ── */
+  header.masthead {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 24px;
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .masthead .left, .masthead .right { display: flex; gap: 18px; align-items: center; }
+  .masthead .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--sharpie);
+    box-shadow: 0 0 10px var(--sharpie);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  /* ── SECTION SCAFFOLD ── */
+  section {
+    padding: 80px var(--gutter);
+    border-bottom: 1px solid var(--ink-15);
+    position: relative;
+  }
+
+  .section-meta {
+    display: flex;
+    gap: 24px;
+    align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-40);
+    margin-bottom: 28px;
+  }
+  .section-meta .num {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .section-meta .rule {
+    flex: 1;
+    height: 1px;
+    background: var(--ink-15);
+  }
+
+  .section-title {
+    font-family: 'Archivo Black', 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  /* ── HERO SPECIMEN ── */
+  .hero {
+    padding: 100px var(--gutter) 60px;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--oxblood);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    width: 28px; height: 1px;
+    background: var(--oxblood);
+  }
+
+  .hero-headline {
+    font-family: 'Archivo Black', 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: clamp(64px, 12vw, 180px);
+    letter-spacing: -0.06em;
+    line-height: 0.85;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 28px;
+    /* Subtle red/cyan misregistration */
+    text-shadow:
+      1.5px 0 0 rgba(200, 48, 46, 0.35),
+      -1.5px 0 0 rgba(45, 120, 130, 0.25);
+  }
+
+  .hero-headline em {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    color: var(--oxblood);
+  }
+
+  .hero-deck {
+    max-width: 640px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    font-weight: 500;
+  }
+
+  /* Floating monospace tag — top-right of hero */
+  .hero-tag {
+    position: absolute;
+    top: 110px;
+    right: var(--gutter);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--ink-40);
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .hero-tag b { color: var(--ink); font-weight: 700; }
+
+  /* ── PALETTE ── */
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .swatch {
+    aspect-ratio: 4 / 5;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--ink-15);
+    position: relative;
+  }
+  .swatch .name { font-weight: 700; }
+  .swatch .hex { opacity: 0.8; }
+
+  /* ── TYPOGRAPHY SPECIMENS ── */
+  .type-stack { display: flex; flex-direction: column; gap: 38px; }
+  .type-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 24px;
+    align-items: baseline;
+    border-top: 1px solid var(--ink-15);
+    padding-top: 24px;
+  }
+  .type-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-40);
+  }
+  .type-sample-display {
+    font-family: 'Archivo Black', 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: clamp(40px, 6vw, 72px);
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+  .type-sample-serif {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(28px, 4vw, 44px);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--oxblood);
+  }
+  .type-sample-body {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.65;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    max-width: 560px;
+  }
+  .type-sample-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ── PHOTO CARDS ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 36px;
+  }
+
+  .card {
+    position: relative;
+    background: var(--cream-warm);
+    padding: 14px 14px 18px;
+    border: 1px solid var(--ink-15);
+    transform: rotate(var(--tilt, 0deg));
+    box-shadow: 0 8px 28px -10px rgba(20,17,13,0.25);
+  }
+
+  .card-frame {
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+    aspect-ratio: 4 / 5;
+  }
+
+  .card-frame img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: contrast(1.05) saturate(0.85);
+  }
+
+  /* Variant: duotone (oxblood + cream) */
+  .card.duo .card-frame img {
+    filter: contrast(1.1) sepia(1) hue-rotate(335deg) saturate(2.2) brightness(0.9);
+    mix-blend-mode: multiply;
+  }
+  .card.duo .card-frame { background: var(--cream-warm); }
+
+  /* Variant: channel offset / chromatic aberration */
+  .card.glitch .card-frame::before,
+  .card.glitch .card-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: inherit;
+    pointer-events: none;
+  }
+  .card.glitch .card-frame img {
+    filter: grayscale(0.5) contrast(1.1);
+  }
+  .card.glitch::after {
+    content: '';
+    position: absolute;
+    inset: 14px 14px auto 14px;
+    aspect-ratio: 4 / 5;
+    background: inherit;
+    mix-blend-mode: difference;
+    pointer-events: none;
+    box-shadow:
+      2px 0 0 rgba(200,48,46,0.4),
+      -2px 0 0 rgba(45,120,130,0.4);
+    opacity: 0;
+  }
+
+  /* Film-strip perforations (top + bottom) */
+  .card.film .card-frame {
+    border-top: 22px solid var(--ink);
+    border-bottom: 22px solid var(--ink);
+    background-image:
+      radial-gradient(circle at 50% 11px, var(--cream) 4px, transparent 4.5px),
+      radial-gradient(circle at 50% calc(100% - 11px), var(--cream) 4px, transparent 4.5px);
+    background-size: 32px 22px, 32px 22px;
+    background-position: top center, bottom center;
+    background-repeat: repeat-x;
+    background-color: var(--ink);
+  }
+
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-40);
+  }
+  .card-meta .label {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* Hazard tape on one card */
+  .card.tagged::before {
+    content: 'ROLL 01 / SELECT';
+    position: absolute;
+    top: -10px;
+    right: 14px;
+    background: var(--hazard);
+    color: var(--ink);
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    transform: rotate(2deg);
+    box-shadow: 0 2px 0 rgba(20,17,13,0.2);
+  }
+
+  /* Stamp on one card */
+  .card.stamped::after {
+    content: 'TJ\\A 26';
+    white-space: pre;
+    position: absolute;
+    bottom: 22px; right: 22px;
+    width: 68px; height: 68px;
+    border: 2px solid var(--sharpie);
+    color: var(--sharpie);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.05;
+    text-align: center;
+    padding-top: 18px;
+    transform: rotate(-8deg);
+    opacity: 0.85;
+    mix-blend-mode: multiply;
+    border-radius: 50%;
+  }
+
+  /* ── UI BITS ROW ── */
+  .ui-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .btn {
+    font-family: 'Archivo Black', 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--cream);
+    background: var(--ink);
+    border: none;
+    padding: 16px 32px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--oxblood); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+  }
+  .btn-ghost:hover { box-shadow: 4px 4px 0 var(--ink); }
+
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    background: var(--cream-deep);
+    border: 1px solid var(--ink-15);
+    color: var(--ink);
+  }
+  .chip.alert { background: var(--sharpie); color: var(--cream); border-color: var(--sharpie); }
+  .chip.tape { background: var(--hazard); border-color: var(--ink); transform: rotate(-2deg); }
+
+  .link {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 2px;
+    position: relative;
+  }
+  .link::after {
+    content: '↗';
+    margin-left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--oxblood);
+  }
+
+  /* ── COLLAGE / MAXIMALIST DEMO ── */
+  .collage {
+    position: relative;
+    min-height: 720px;
+    background: var(--cream-warm);
+    border: 1px solid var(--ink-15);
+    overflow: hidden;
+  }
+
+  .collage-bg-text {
+    position: absolute;
+    bottom: -20px;
+    left: -10px;
+    font-family: 'Archivo Black', sans-serif;
+    font-weight: 900;
+    font-size: clamp(180px, 28vw, 420px);
+    letter-spacing: -0.08em;
+    line-height: 0.8;
+    color: var(--cream-deep);
+    pointer-events: none;
+    z-index: 1;
+    user-select: none;
+  }
+
+  .collage-img {
+    position: absolute;
+    border: 1px solid var(--ink-15);
+    background: var(--cream);
+    padding: 8px 8px 12px;
+    box-shadow: 0 12px 30px -12px rgba(20,17,13,0.4);
+  }
+  .collage-img img { display: block; width: 100%; height: 100%; object-fit: cover; filter: contrast(1.05) saturate(0.9); }
+  .collage-img .cap {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-40);
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  .collage-img.a { top: 60px; left: 80px; width: 280px; transform: rotate(-3deg); z-index: 5; }
+  .collage-img.b { top: 200px; left: 380px; width: 220px; transform: rotate(2deg); z-index: 6; }
+  .collage-img.c { top: 80px; right: 120px; width: 240px; transform: rotate(4deg); z-index: 5; }
+  .collage-img.d { bottom: 80px; left: 220px; width: 200px; transform: rotate(-1deg); z-index: 7; }
+
+  .collage-tape {
+    position: absolute;
+    background: var(--hazard);
+    width: 110px; height: 22px;
+    opacity: 0.92;
+    border: 1px dashed rgba(20,17,13,0.25);
+    z-index: 8;
+  }
+  .collage-tape.t1 { top: 48px; left: 200px; transform: rotate(-12deg); }
+  .collage-tape.t2 { bottom: 90px; right: 200px; transform: rotate(8deg); width: 90px; }
+
+  .collage-stamp {
+    position: absolute;
+    top: 380px; right: 40px;
+    width: 110px; height: 110px;
+    border: 3px solid var(--sharpie);
+    color: var(--sharpie);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-align: center;
+    padding-top: 32px;
+    transform: rotate(-12deg);
+    border-radius: 50%;
+    opacity: 0.85;
+    z-index: 9;
+    text-transform: uppercase;
+  }
+
+  .collage-meta {
+    position: absolute;
+    top: 40px; right: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.5;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    text-transform: uppercase;
+    text-align: right;
+    z-index: 9;
+  }
+  .collage-meta b { display: block; color: var(--oxblood); }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 60px var(--gutter);
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-40);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 720px) {
+    .hero-tag { display: none; }
+    .type-row { grid-template-columns: 1fr; gap: 8px; }
+    .collage { min-height: 520px; }
+    .collage-img.a { left: 20px; width: 200px; }
+    .collage-img.b { left: 180px; top: 240px; width: 170px; }
+    .collage-img.c { right: 20px; width: 180px; }
+    .collage-img.d { left: 80px; width: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="grain-container"></div>
+
+<header class="masthead">
+  <div class="left">
+    <span class="dot"></span>
+    <span>TJ // MOODBOARD</span>
+    <span>V1.0</span>
+  </div>
+  <div class="right">
+    <span>2026-04-16</span>
+    <span>FRAME 06 / ROLL 01</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── HERO SPECIMEN ── -->
+  <section class="hero">
+    <div class="hero-eyebrow">DIRECTION TEST · GRUNGE / FUTURIST / MAXIMALIST</div>
+    <h1 class="hero-headline">TOM<br>JENKINSON<em>—</em></h1>
+    <p class="hero-deck">Product manager. Photographer. A working portfolio built like a contact sheet — analog texture, modern type, deliberate noise.</p>
+    <div class="hero-tag">
+      <b>EXP. 1/250</b><br>
+      F.2.8 · ISO 400<br>
+      LEICA M6 / TRI-X
+    </div>
+  </section>
+
+  <!-- ── PALETTE ── -->
+  <section>
+    <div class="section-meta">
+      <span class="num">01</span><span>PALETTE / STOCK</span><span class="rule"></span><span>06 SWATCHES</span>
+    </div>
+    <h2 class="section-title">Paper, ink, and one warning colour.</h2>
+    <div class="palette">
+      <div class="swatch" style="background: var(--cream); color: var(--ink);">
+        <div class="name">CREAM / PAPER</div><div class="hex">#F0EBDE</div>
+      </div>
+      <div class="swatch" style="background: var(--cream-deep); color: var(--ink);">
+        <div class="name">CREAM DEEP</div><div class="hex">#E2D8BE</div>
+      </div>
+      <div class="swatch" style="background: var(--ink); color: var(--cream);">
+        <div class="name">INK</div><div class="hex">#14110D</div>
+      </div>
+      <div class="swatch" style="background: var(--oxblood); color: var(--cream);">
+        <div class="name">OXBLOOD</div><div class="hex">#8B3A2A</div>
+      </div>
+      <div class="swatch" style="background: var(--sharpie); color: var(--cream);">
+        <div class="name">SHARPIE RED</div><div class="hex">#C8302E</div>
+      </div>
+      <div class="swatch" style="background: var(--hazard); color: var(--ink);">
+        <div class="name">HAZARD</div><div class="hex">#E8D45A</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TYPOGRAPHY ── -->
+  <section>
+    <div class="section-meta">
+      <span class="num">02</span><span>TYPE STACK</span><span class="rule"></span><span>3 FACES</span>
+    </div>
+    <h2 class="section-title">Heavy display, italic serif accent, mono metadata.</h2>
+    <div class="type-stack">
+      <div class="type-row">
+        <div class="type-label">DISPLAY<br>Archivo Black</div>
+        <div class="type-sample-display">FRAME / GRAIN / FILM</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">SERIF ACCENT<br>Fraunces Italic</div>
+        <div class="type-sample-serif">— a small, deliberate counterpoint.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">BODY<br>Archivo 500</div>
+        <div class="type-sample-body">UPPERCASE BODY COPY READS LIKE PRINTED CONTACT-SHEET CAPTIONS. KEEP IT TIGHT, KEEP IT BREATHING.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-label">META<br>JetBrains Mono</div>
+        <div class="type-sample-mono">ROLL_01 · FRAME 06 / 36 · TRI-X 400 · DEV 7M30S · 20°C · LEICA M6 · SUMMICRON 50/2</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PHOTO TREATMENTS ── -->
+  <section>
+    <div class="section-meta">
+      <span class="num">03</span><span>PHOTO TREATMENTS</span><span class="rule"></span><span>4 VARIANTS</span>
+    </div>
+    <h2 class="section-title">Frames, duotone, perforations, stamps.</h2>
+    <div class="cards">
+
+      <div class="card" style="--tilt: -1.5deg;">
+        <div class="card-frame">
+          <img src="imgs/Leica.png" alt="Leica">
+        </div>
+        <div class="card-meta">
+          <span class="label">LEICA M6</span>
+          <span>FRAME 12</span>
+        </div>
+      </div>
+
+      <div class="card duo tagged" style="--tilt: 1deg;">
+        <div class="card-frame">
+          <img src="https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=600&q=80&auto=format" alt="film">
+        </div>
+        <div class="card-meta">
+          <span class="label">DUOTONE</span>
+          <span>OXBLOOD WASH</span>
+        </div>
+      </div>
+
+      <div class="card film" style="--tilt: -2deg;">
+        <div class="card-frame">
+          <img src="imgs/Super 8.png.webp" alt="Super 8">
+        </div>
+        <div class="card-meta">
+          <span class="label">SUPER 8</span>
+          <span>PERFORATED</span>
+        </div>
+      </div>
+
+      <div class="card stamped" style="--tilt: 1.5deg;">
+        <div class="card-frame">
+          <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80&auto=format" alt="workspace">
+        </div>
+        <div class="card-meta">
+          <span class="label">CONTACT</span>
+          <span>SELECT 03</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── UI BITS ── -->
+  <section>
+    <div class="section-meta">
+      <span class="num">04</span><span>UI / COMPONENTS</span><span class="rule"></span><span>BUTTONS · CHIPS · LINKS</span>
+    </div>
+    <h2 class="section-title">Buttons feel printed. Tape labels for status.</h2>
+    <div class="ui-row">
+      <button class="btn">VIEW WORK</button>
+      <button class="btn btn-ghost">CONTACT</button>
+      <span class="chip">FRAME 06</span>
+      <span class="chip alert">REC</span>
+      <span class="chip tape">DRAFT</span>
+      <a href="#" class="link">Read the brief</a>
+    </div>
+  </section>
+
+  <!-- ── COLLAGE ── -->
+  <section>
+    <div class="section-meta">
+      <span class="num">05</span><span>COLLAGE / MAXIMALIST MOMENT</span><span class="rule"></span><span>OVERLAY · ROTATE · TAPE</span>
+    </div>
+    <h2 class="section-title">A page section that breathes density without losing structure.</h2>
+
+    <div class="collage">
+      <div class="collage-bg-text">FILM</div>
+
+      <div class="collage-meta">
+        <b>SECTION / 05</b>
+        ROLL 01 · FRAME 06<br>
+        DEV 2026-04-16<br>
+        TRI-X 400 / SUMMICRON
+      </div>
+
+      <div class="collage-img a">
+        <img src="imgs/Leica.png" alt="" style="aspect-ratio: 4/5;">
+        <div class="cap">— LEICA M6 / 50MM</div>
+      </div>
+      <div class="collage-img b">
+        <img src="https://images.unsplash.com/photo-1495745966610-2a67f2297e5e?w=600&q=80&auto=format" alt="" style="aspect-ratio: 1/1;">
+        <div class="cap">— FRAME 12 / SELECT</div>
+      </div>
+      <div class="collage-img c">
+        <img src="imgs/Super 8.png.webp" alt="" style="aspect-ratio: 4/5;">
+        <div class="cap">— SUPER 8</div>
+      </div>
+      <div class="collage-img d">
+        <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80&auto=format" alt="" style="aspect-ratio: 4/3;">
+        <div class="cap">— DESK / 09:14</div>
+      </div>
+
+      <div class="collage-tape t1"></div>
+      <div class="collage-tape t2"></div>
+
+      <div class="collage-stamp">SELECT<br>2026</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  END OF SHEET · TJ MOODBOARD V1 · 2026-04-16
+</footer>
+
+<script>
+  // p5 grain — slightly heavier than the live site's
+  new p5(function(p) {
+    var SCALE = 4, gw, gh;
+    p.setup = function() {
+      p.pixelDensity(1);
+      gw = Math.floor(p.windowWidth / SCALE);
+      gh = Math.floor(p.windowHeight / SCALE);
+      var c = p.createCanvas(gw, gh);
+      c.parent('grain-container');
+      c.elt.style.width = '100%';
+      c.elt.style.height = '100%';
+      p.frameRate(14);
+      p.noSmooth();
+    };
+    p.draw = function() {
+      p.loadPixels();
+      var len = p.pixels.length;
+      for (var i = 0; i < len; i += 4) {
+        var v = p.random(255);
+        p.pixels[i] = v; p.pixels[i+1] = v; p.pixels[i+2] = v;
+        p.pixels[i+3] = p.random(120);
+      }
+      p.updatePixels();
+    };
+    p.windowResized = function() {
+      gw = Math.floor(p.windowWidth / SCALE);
+      gh = Math.floor(p.windowHeight / SCALE);
+      p.resizeCanvas(gw, gh);
+    };
+  });
+</script>
+
+</body>
+</html>
